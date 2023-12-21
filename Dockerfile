@@ -14,8 +14,8 @@ COPY . .
 # Build the Go binary
 # do I need to add go mod download???
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o certificateSigner .
-RUN echo "$CA_CERT" | base64 -d > ca-cert.pem
-RUN echo "$CA_KEY" | base64 -d > ca-key.pem
+RUN echo $CA_CERT | base64 -d > ca-cert.pem
+RUN echo $CA_KEY | base64 -d > ca-key.pem
 
 # Use scratch as the final base image
 FROM scratch
