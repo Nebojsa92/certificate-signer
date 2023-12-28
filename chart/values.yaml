@@ -1,6 +1,7 @@
 api:
   image:
     repository: registry.digitalocean.com/flowpay/certificate-signer
+    tag: "latest"
 
   imagePullSecrets: []
   nameOverride: ""
