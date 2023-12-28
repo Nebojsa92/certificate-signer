@@ -11,6 +11,7 @@ api:
       - host: certificate-signer.nebojsa-test.store
         paths:
           - path: /
+            pathType: Prefix
 
   
   autoscaling:
