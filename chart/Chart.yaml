@@ -26,4 +26,4 @@ appVersion: "0.0.0"
 dependencies:
   - name: api
     version: 0.1.0
-    repository: "https://helmcharts-arus.fra1.digitaloceanspaces.com/api-0.1.0.tgz"
+    repository: "https://helmcharts-arus.fra1.digitaloceanspaces.com"
