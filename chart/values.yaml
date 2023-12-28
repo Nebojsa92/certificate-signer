@@ -1,25 +1,26 @@
-image:
-  repository: registry.digitalocean.com/flowpay/certificate-signer
+api:
+  image:
+    repository: registry.digitalocean.com/flowpay/certificate-signer
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
 
-ingress:
-  hosts:
-    - host: certificate-signer.nebojsa-test.store
- 
-autoscaling:
-  enabled: true
-  minReplicas: 1
-  maxReplicas: 5
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+  ingress:
+    hosts:
+      - host: certificate-signer.nebojsa-test.store
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
 
-secretFiles:
-  - name: ca-cert
-    remoteRefKey: ca-cert
-    mountPath: /ca-cert.pem
-  - name: ca-key
-    remoteRefKey: ca-key
-    mountPath: /ca-key.pem
+  secretFiles:
+    - name: ca-cert
+      remoteRefKey: ca-cert
+      mountPath: /ca-cert.pem
+    - name: ca-key
+      remoteRefKey: ca-key
+      mountPath: /ca-key.pem
