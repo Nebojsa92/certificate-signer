@@ -9,6 +9,9 @@ api:
   ingress:
     hosts:
       - host: certificate-signer.nebojsa-test.store
+        paths:
+          - path: /
+
   
   autoscaling:
     enabled: true
