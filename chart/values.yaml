@@ -3,9 +3,8 @@ api:
     repository: registry.digitalocean.com/flowpay/certificate-signer
     tag: "latest"
 
-  imagePullSecrets: []
-  nameOverride: ""
-  fullnameOverride: ""
+  imagePullSecrets:
+    - flowpay
 
   ingress:
     hosts:
