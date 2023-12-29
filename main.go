@@ -79,6 +79,12 @@ func handleCSRRequest(w http.ResponseWriter, r *http.Request) {
 	w.Write(certPEM)
 }
 
+func handleReady(w http.ResponseWriter, r *http.Request) {
+	// Respond with a 200 OK status code
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
 func generateRandomSerial() *big.Int {
 	// Generate a random 128-bit number (16 bytes)
 	randomBytes := make([]byte, 16)
@@ -117,6 +123,7 @@ func main() {
 		serverPort := getEnv("PORT", "80")
 		server = &http.Server{Addr: ":" + serverPort}
 
+		http.HandleFunc("/ready", handleReady)
 		http.HandleFunc("/csr", handleCSRRequest)
 		http.Handle("/metrics", promhttp.Handler())
 

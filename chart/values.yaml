@@ -28,3 +28,5 @@ api:
     - name: ca-key
       remoteRefKey: ca-key
       mountPath: /ca-key.pem
+
+  readyEndpoint: /ready
