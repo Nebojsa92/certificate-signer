@@ -29,4 +29,9 @@ api:
       remoteRefKey: ca-key
       mountPath: /ca-key.pem
 
-  readyEndpoint: /ready
+  readiness:
+    enabled: true
+    endpoint: /ready
+  liveness:
+    enabled: true
+    endpoint: /ready
