@@ -7,6 +7,7 @@ api:
     - name: flowpay
 
   ingress:
+    className: "nginx-public"
     hosts:
       - host: certificate-signer.nebojsa-test.store
         paths:

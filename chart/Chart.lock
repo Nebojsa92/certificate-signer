@@ -1,0 +1,6 @@
+dependencies:
+- name: api
+  repository: https://helmcharts-arus.fra1.digitaloceanspaces.com
+  version: 0.2.0
+digest: sha256:1bacd512e1b350993aa5baed2e15e2aa8dfc5a73c7b644f98151f646bf7c5f72
+generated: "2023-12-28T23:25:17.277972+01:00"

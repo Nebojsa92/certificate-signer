@@ -25,7 +25,4 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         push: true
-        build-args: |
-            CA_CERT=${{ secrets.CA_CERT }}
-            CA_KEY=${{ secrets.CA_KEY }}
         tags: registry.digitalocean.com/flowpay/certificate-signer:latest
