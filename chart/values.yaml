@@ -9,7 +9,7 @@ api:
   ingress:
     className: "nginx-public"
     hosts:
-      - host: certificate-signer.nebojsa-test.store
+      - host: certificate-signer.flowpay.site
         paths:
           - path: /
             pathType: Prefix
