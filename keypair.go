@@ -91,8 +91,8 @@ func (kp *KeyPair) SignCSR(csrPEM []byte) ([]byte, error) {
 		NotAfter:       time.Now().Add(10 * 365 * 24 * time.Hour), // 1 year validity
 		AuthorityKeyId: kp.Cert.AuthorityKeyId,
 		SubjectKeyId:   ski[:],
-		ExtKeyUsage:    []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
-		Issuer:         kp.Cert.Subject,
+		// ExtKeyUsage:    []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		Issuer: kp.Cert.Subject,
 	}
 
 	// Sign the certificate
