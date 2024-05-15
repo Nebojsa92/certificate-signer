@@ -9,7 +9,7 @@ COPY . .
 
 # Build the Go binary
 # do I need to add go mod download???
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o certificateSigner .
+RUN go get && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o certificateSigner .
 
 # Use scratch as the final base image
 FROM scratch

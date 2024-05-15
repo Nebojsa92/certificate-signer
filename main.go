@@ -16,8 +16,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	integrity "github.com/flowpay/certificate-signer/integrity"
-	keypair "github.com/flowpay/certificate-signer/keypair"
+	integrity "github.com/Nebojsa92/certificate-signer/integrity"
+	keypair "github.com/Nebojsa92/certificate-signer/keypair"
 	"github.com/gorilla/schema"
 )
 

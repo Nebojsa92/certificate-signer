@@ -1,4 +1,4 @@
-module github.com/flowpay/certificate-signer
+module github.com/Nebojsa92/certificate-signer
 
 go 1.21.5
 
