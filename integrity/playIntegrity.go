@@ -39,7 +39,6 @@ func (manager *PlayIntegrityManager) VerifyIntegrityToken(token string, hash str
 	if err != nil {
 		return false, err
 	}
-
 	return manager.verdict(response.TokenPayloadExternal), nil
 }
 
@@ -52,10 +51,16 @@ func (manager *PlayIntegrityManager) MarshalTokenPayload(response *playintegrity
 }
 
 func (manager *PlayIntegrityManager) verdict(payload *playintegrity.TokenPayloadExternal) bool {
+	var result bool
 
-	result := manager.VerifyAccountDetails(payload) &&
-		manager.VerifyDeviceIntegrity(payload) &&
-		manager.VerifyAppIntegrity(payload)
+	if manager.env == "development" {
+		// emulator can never pass the integrity check
+		result = true
+	} else {
+		result = manager.VerifyAccountDetails(payload) &&
+			manager.VerifyDeviceIntegrity(payload) &&
+			manager.VerifyAppIntegrity(payload)
+	}
 	if !result {
 		data, _ := manager.MarshalTokenPayload(payload)
 		log.Printf("Integrity verification failed: %s", data)
@@ -83,7 +88,7 @@ func (manager *PlayIntegrityManager) VerifyDeviceIntegrity(payload *playintegrit
 	}
 
 	for _, verdict := range payload.DeviceIntegrity.DeviceRecognitionVerdict {
-		if verdict == "MEETS_DEVICE_INTEGRITY" || verdict == "MEETS_STRONG_INTEGRITY" || (verdict == "MEETS_VIRTUAL_INTEGRITY") { // TODO: prod/dev environment
+		if verdict == "MEETS_DEVICE_INTEGRITY" || verdict == "MEETS_STRONG_INTEGRITY" {
 			return true
 		}
 	}
