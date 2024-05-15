@@ -168,8 +168,10 @@ func handleCSR2Request(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Printf("CSR: %s\n", csrRequest.CSR)
 	// Sign the CSR
 	certPEM, err := ca.SignCSR([]byte(csrRequest.CSR))
+	fmt.Printf("Cert: %s\n", certPEM)
 	if err != nil {
 		log.Errorf("Failed to sign CSR: %v", err)
 		http.Error(w, "Failed to sign CSR", http.StatusInternalServerError)

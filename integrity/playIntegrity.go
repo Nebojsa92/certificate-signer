@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	log "github.com/sirupsen/logrus"
+
 	"google.golang.org/api/option"
 	playintegrity "google.golang.org/api/playintegrity/v1"
 )
@@ -41,8 +43,8 @@ func (manager *PlayIntegrityManager) VerifyIntegrityToken(token string, hash str
 	return manager.verdict(response.TokenPayloadExternal), nil
 }
 
-func (manager *PlayIntegrityManager) MarshalTokenPayload(response *playintegrity.DecodeIntegrityTokenResponse) (string, error) {
-	data, err := json.Marshal(response.TokenPayloadExternal)
+func (manager *PlayIntegrityManager) MarshalTokenPayload(response *playintegrity.TokenPayloadExternal) (string, error) {
+	data, err := json.Marshal(response)
 	if err != nil {
 		return "", err
 	}
@@ -51,9 +53,14 @@ func (manager *PlayIntegrityManager) MarshalTokenPayload(response *playintegrity
 
 func (manager *PlayIntegrityManager) verdict(payload *playintegrity.TokenPayloadExternal) bool {
 
-	return manager.VerifyAccountDetails(payload) &&
+	result := manager.VerifyAccountDetails(payload) &&
 		manager.VerifyDeviceIntegrity(payload) &&
 		manager.VerifyAppIntegrity(payload)
+	if !result {
+		data, _ := manager.MarshalTokenPayload(payload)
+		log.Printf("Integrity verification failed: %s", data)
+	}
+	return result
 }
 
 func (manager *PlayIntegrityManager) VerifyAccountDetails(payload *playintegrity.TokenPayloadExternal) bool {

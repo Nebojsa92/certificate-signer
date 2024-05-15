@@ -16,6 +16,7 @@ FROM scratch
 
 # Copy the compiled binary from the builder stage
 COPY --from=builder /app/certificateSigner /
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Expose a port if your Go application listens on a port
 EXPOSE 80
