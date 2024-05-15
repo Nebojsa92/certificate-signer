@@ -1,4 +1,4 @@
-package main
+package keypair
 
 import (
 	"crypto/rand"
@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"math/big"
 	"os"
 	"time"
 
@@ -104,4 +105,17 @@ func (kp *KeyPair) SignCSR(csrPEM []byte) ([]byte, error) {
 	// Encode the certificate to PEM format
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
 	return certPEM, nil
+}
+
+func generateRandomSerial() *big.Int {
+	// Generate a random 128-bit number (16 bytes)
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+
+	// if rand.Read fails, generate from timestamp
+	if err != nil {
+		return new(big.Int).SetInt64(time.Now().UnixMilli())
+	}
+	// Convert the random bytes to a big.Int
+	return new(big.Int).SetBytes(randomBytes)
 }
