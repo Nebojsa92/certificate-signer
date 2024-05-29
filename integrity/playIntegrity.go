@@ -14,6 +14,10 @@ type PlayIntegrityManager struct {
 	Service *playintegrity.Service
 	env     string
 }
+type IntegrityData struct {
+	IntegrityToken string `json:"integrityToken"`
+	Hash           string `json:"hash"`
+}
 
 func NewPlayIntegrityManager(serviceAccountJSONString string, env string) (*PlayIntegrityManager, error) {
 	ctx := context.Background()
@@ -30,10 +34,17 @@ func NewPlayIntegrityManager(serviceAccountJSONString string, env string) (*Play
 	}, nil
 }
 
-func (manager *PlayIntegrityManager) VerifyIntegrityToken(token string, hash string, packageName string) (bool, error) {
+func (manager *PlayIntegrityManager) VerifyIntegrityToken(jsonRawData []byte, packageName string) (bool, error) {
+
+	var data IntegrityData
+	err := json.Unmarshal(jsonRawData, &data)
+	if err != nil {
+		return false, err
+	}
+
 	ctx := context.Background()
 	request := &playintegrity.DecodeIntegrityTokenRequest{
-		IntegrityToken: token,
+		IntegrityToken: data.IntegrityToken,
 	}
 	response, err := manager.Service.V1.DecodeIntegrityToken(packageName, request).Context(ctx).Do()
 	if err != nil {

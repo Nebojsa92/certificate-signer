@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,7 +20,6 @@ import (
 
 	integrity "github.com/Nebojsa92/certificate-signer/integrity"
 	keypair "github.com/Nebojsa92/certificate-signer/keypair"
-	"github.com/gorilla/schema"
 )
 
 var (
@@ -28,6 +29,7 @@ var (
 	serviceAccountJSONString = getEnv("PLAY_INTEGRITY_SA", "")
 	serverPort               = getEnv("PORT", "80")
 	environment              = getEnv("ENVIRONMENT", "development")
+	appleDevelopmentTeamID   = getEnv("APPLE_DEVELOPMENT_TEAM_ID", "VG8GH7SAR8")
 
 	// CA for signing
 	ca *keypair.KeyPair
@@ -46,14 +48,17 @@ var (
 	)
 
 	playIntegrityManager *integrity.PlayIntegrityManager
+	appAttestManager     *integrity.AppAttestManager
 )
 
-type CSRRequest struct {
-	CSR            string `json:"csr" schema:"csr"`
-	Platform       string `json:"platform" schema:"platform"`
-	PackageName    string `json:"packageName" schema:"packageName"`
-	IntegrityToken string `json:"integrityToken" schema:"integrityToken"`
-	RequestHash    string `json:"hash" schema:"hash"`
+type CSRRequestBody struct {
+	CSR         string          `json:"csr" schema:"csr"`
+	Platform    string          `json:"platform" schema:"platform"`
+	PackageName string          `json:"packageName" schema:"packageName"`
+	Data        json.RawMessage `json:"data" schema:"data"`
+	// Data TestStruct `json:"data" schema:"data"`
+	// IntegrityToken string `json:"integrityToken" schema:"integrityToken"`
+	// RequestHash    string `json:"hash" schema:"hash"`
 }
 
 func init() {
@@ -76,6 +81,11 @@ func init() {
 	playIntegrityManager, err = integrity.NewPlayIntegrityManager(serviceAccountJSONString, environment)
 	if err != nil {
 		log.Fatalf("Unable to create Play Integrity Manager: %v", err)
+	}
+	// Initialize Attest Manager
+	appAttestManager, err = integrity.NewAppAttestManager(environment, appleDevelopmentTeamID)
+	if err != nil {
+		log.Fatalf("Unable to create Attest Integrity Manager: %v", err)
 	}
 
 }
@@ -115,6 +125,7 @@ func handleCSRRequest(w http.ResponseWriter, r *http.Request) {
 
 func handleCSR2Request(w http.ResponseWriter, r *http.Request) {
 	log.Info(r.URL.RequestURI())
+	defer r.Body.Close()
 
 	// Check if the request method is POST
 	if r.Method != http.MethodPost {
@@ -124,26 +135,20 @@ func handleCSR2Request(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse form data
-	err := r.ParseForm()
+	// Decode the JSON request
+	var csrRequest CSRRequestBody
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&csrRequest)
 	if err != nil {
-		log.Errorf("Failed to parse form data: %v", err)
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		log.Errorf("Failed to decode JSON data: %v", err)
+		http.Error(w, "Invalid JSON data", http.StatusBadRequest)
 		requestsTotal.WithLabelValues(r.Method, fmt.Sprintf("%d", http.StatusBadRequest)).Inc()
 		return
 	}
 
-	var csrRequest CSRRequest
-	decoder := schema.NewDecoder()
-	if err := decoder.Decode(&csrRequest, r.PostForm); err != nil {
-		log.Printf("Failed to decode form data into struct: %v", err)
-		http.Error(w, "Failed to decode form data", http.StatusBadRequest)
-		return
-	}
-
 	// Validate required fields
-	if csrRequest.CSR == "" || csrRequest.Platform == "" || csrRequest.IntegrityToken == "" || csrRequest.RequestHash == "" || csrRequest.PackageName == "" {
-		log.Errorf("Missing required fields in form data")
+	if csrRequest.CSR == "" || csrRequest.Platform == "" || csrRequest.Data == nil || csrRequest.PackageName == "" {
+		log.Errorf("Missing required fields in JSON data")
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		requestsTotal.WithLabelValues(r.Method, fmt.Sprintf("%d", http.StatusBadRequest)).Inc()
 		return
@@ -152,7 +157,7 @@ func handleCSR2Request(w http.ResponseWriter, r *http.Request) {
 	// Verify the integrity token
 	switch csrRequest.Platform {
 	case "android":
-		verdict, err := playIntegrityManager.VerifyIntegrityToken(csrRequest.IntegrityToken, csrRequest.RequestHash, csrRequest.PackageName)
+		verdict, err := playIntegrityManager.VerifyIntegrityToken(csrRequest.Data, csrRequest.PackageName)
 		if err != nil {
 			log.Printf("Failed to verify integrity token: %v", err)
 			http.Error(w, "Failed to verify integrity token", http.StatusInternalServerError)
@@ -165,7 +170,17 @@ func handleCSR2Request(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case "ios":
-		return
+		verdict, err := appAttestManager.VerifyAttestationToken(csrRequest.Data, csrRequest.PackageName)
+		if err != nil {
+			log.Printf("Failed to verify attestation: %v", err)
+			http.Error(w, "Failed to verify attestation", http.StatusInternalServerError)
+			return
+		}
+		if !verdict {
+			log.Printf("Attestation verification failed")
+			http.Error(w, "Attestation verification failed", http.StatusUnauthorized)
+			return
+		}
 	default:
 	}
 
@@ -235,4 +250,9 @@ func main() {
 		log.Fatalf("Failed to shutdown server: %v", err)
 	}
 	log.Println("Server shutdown complete")
+}
+
+func isValidBase64(s string) bool {
+	_, err := base64.StdEncoding.DecodeString(s)
+	return err == nil
 }

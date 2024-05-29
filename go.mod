@@ -3,7 +3,7 @@ module github.com/Nebojsa92/certificate-signer
 go 1.21.5
 
 require (
-	github.com/gorilla/schema v1.3.0
+	github.com/bas-d/appattest v0.1.0
 	github.com/prometheus/client_golang v1.19.1
 	github.com/sirupsen/logrus v1.9.3
 	google.golang.org/api v0.180.0
@@ -28,6 +28,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.53.0 // indirect
 	github.com/prometheus/procfs v0.15.0 // indirect
+	github.com/ugorji/go/codec v1.2.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.51.0 // indirect
 	go.opentelemetry.io/otel v1.26.0 // indirect
