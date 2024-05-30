@@ -3,7 +3,6 @@ package integrity
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	attest "github.com/bas-d/appattest/attestation"
 )
@@ -30,6 +29,10 @@ func NewAppAttestManager(env string, appleDevelopmentTeamID string) (*AppAttestM
 }
 
 func (manager *AppAttestManager) VerifyAttestationToken(jsonRawData []byte, appID string) (bool, error) {
+	if !manager.isProduction {
+		return true, nil
+	}
+
 	var jsonData AttestData
 	err := json.Unmarshal(jsonRawData, &jsonData)
 	if err != nil {
@@ -42,10 +45,9 @@ func (manager *AppAttestManager) VerifyAttestationToken(jsonRawData []byte, appI
 		ClientData:        jsonData.ClientData,
 	}
 
-	r, r2, err := aar.Verify(manager.appleDevelopmentTeamID+"."+appID, manager.isProduction)
-	fmt.Printf("%v %v %v\n", r, r2, err)
+	_, _, err = aar.Verify(manager.appleDevelopmentTeamID+"."+appID, manager.isProduction)
 	if err != nil {
-		return !manager.isProduction, err
+		return false, err
 	}
 	return true, nil
 
