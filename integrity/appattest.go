@@ -3,12 +3,13 @@ package integrity
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	attest "github.com/bas-d/appattest/attestation"
 )
 
 type AppAttestManager struct {
-	env                    bool
+	isProduction           bool
 	appleDevelopmentTeamID string
 }
 
@@ -23,7 +24,7 @@ func NewAppAttestManager(env string, appleDevelopmentTeamID string) (*AppAttestM
 		return nil, errors.New("invalid environment. Must be either 'production' or 'development'")
 	}
 	return &AppAttestManager{
-		env:                    env == "production",
+		isProduction:           env == "production",
 		appleDevelopmentTeamID: appleDevelopmentTeamID,
 	}, nil
 }
@@ -41,9 +42,10 @@ func (manager *AppAttestManager) VerifyAttestationToken(jsonRawData []byte, appI
 		ClientData:        jsonData.ClientData,
 	}
 
-	_, _, err = aar.Verify(manager.appleDevelopmentTeamID+"."+appID, manager.env)
+	r, r2, err := aar.Verify(manager.appleDevelopmentTeamID+"."+appID, manager.isProduction)
+	fmt.Printf("%v %v %v\n", r, r2, err)
 	if err != nil {
-		return false, err
+		return !manager.isProduction, err
 	}
 	return true, nil
 

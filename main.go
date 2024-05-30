@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -250,9 +249,4 @@ func main() {
 		log.Fatalf("Failed to shutdown server: %v", err)
 	}
 	log.Println("Server shutdown complete")
-}
-
-func isValidBase64(s string) bool {
-	_, err := base64.StdEncoding.DecodeString(s)
-	return err == nil
 }
