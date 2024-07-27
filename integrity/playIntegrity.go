@@ -50,6 +50,7 @@ func (manager *PlayIntegrityManager) VerifyIntegrityToken(jsonRawData []byte, pa
 	if err != nil {
 		return false, err
 	}
+	log.Printf("Integrity token decoded: %++v", response)
 	return manager.verdict(response.TokenPayloadExternal), nil
 }
 

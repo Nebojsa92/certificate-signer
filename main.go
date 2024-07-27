@@ -55,9 +55,6 @@ type CSRRequestBody struct {
 	Platform    string          `json:"platform" schema:"platform"`
 	PackageName string          `json:"packageName" schema:"packageName"`
 	Data        json.RawMessage `json:"data" schema:"data"`
-	// Data TestStruct `json:"data" schema:"data"`
-	// IntegrityToken string `json:"integrityToken" schema:"integrityToken"`
-	// RequestHash    string `json:"hash" schema:"hash"`
 }
 
 func init() {
@@ -182,6 +179,7 @@ func handleCSR2Request(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 	}
+	log.Printf("verified: %s - %s", csrRequest.PackageName, csrRequest.Platform)
 
 	// Sign the CSR
 	certPEM, err := ca.SignCSR([]byte(csrRequest.CSR))
