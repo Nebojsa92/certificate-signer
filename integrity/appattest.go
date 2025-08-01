@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	attest "github.com/bas-d/appattest/attestation"
+	log "github.com/sirupsen/logrus"
 )
 
 type AppAttestManager struct {
@@ -47,6 +48,7 @@ func (manager *AppAttestManager) VerifyAttestationToken(jsonRawData []byte, appI
 
 	_, _, err = aar.Verify(manager.appleDevelopmentTeamID+"."+appID, manager.isProduction)
 	if err != nil {
+		log.Printf("[ios] Attestation verification failed: %v", err)
 		return false, err
 	}
 	return true, nil

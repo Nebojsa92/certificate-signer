@@ -59,7 +59,7 @@ type CSRRequestBody struct {
 
 func init() {
 	// Configure the logging format and output
-	log.SetFormatter(&log.TextFormatter{})
+	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 
 	// register prometheus collectors
@@ -120,7 +120,6 @@ func handleCSRRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCSR2Request(w http.ResponseWriter, r *http.Request) {
-	log.Info(r.URL.RequestURI())
 	defer r.Body.Close()
 
 	// Check if the request method is POST
@@ -179,7 +178,6 @@ func handleCSR2Request(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 	}
-	log.Printf("verified: %s - %s", csrRequest.PackageName, csrRequest.Platform)
 
 	// Sign the CSR
 	certPEM, err := ca.SignCSR([]byte(csrRequest.CSR))

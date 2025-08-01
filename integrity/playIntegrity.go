@@ -50,7 +50,6 @@ func (manager *PlayIntegrityManager) VerifyIntegrityToken(jsonRawData []byte, pa
 	if err != nil {
 		return false, err
 	}
-	log.Printf("Integrity token decoded: %++v", response)
 	return manager.verdict(response.TokenPayloadExternal), nil
 }
 
@@ -63,19 +62,17 @@ func (manager *PlayIntegrityManager) MarshalTokenPayload(response *playintegrity
 }
 
 func (manager *PlayIntegrityManager) verdict(payload *playintegrity.TokenPayloadExternal) bool {
-	var result bool
-
 	if manager.env == "development" {
 		// emulator can never pass the integrity check
-		result = true
-	} else {
-		result = manager.VerifyAccountDetails(payload) &&
-			manager.VerifyDeviceIntegrity(payload) &&
-			manager.VerifyAppIntegrity(payload)
+		return true
 	}
+	accountVerified := manager.VerifyAccountDetails(payload)
+	deviceVerified := manager.VerifyDeviceIntegrity(payload)
+	appVerified := manager.VerifyAppIntegrity(payload)
+	result := accountVerified && deviceVerified && appVerified
+
 	if !result {
-		data, _ := manager.MarshalTokenPayload(payload)
-		log.Printf("Integrity verification failed: %s", data)
+		log.Printf("[android] Integrity token decoded: %++v", payload)
 	}
 	return result
 }
@@ -85,7 +82,11 @@ func (manager *PlayIntegrityManager) VerifyAccountDetails(payload *playintegrity
 	//   "UNLICENSED" - The certificate or package name does not match Google Play records.
 	//   "UNKNOWN" - Play does not have sufficient information to evaluate licensing details
 	//   "UNEVALUATED" - Licensing details were not evaluated since a necessary requirement was missed. For example DeviceIntegrity did not meet the minimum bar or the application was not a known Play version.
-	return payload.AccountDetails != nil && payload.AccountDetails.AppLicensingVerdict == "LICENSED"
+	result := payload.AccountDetails != nil && payload.AccountDetails.AppLicensingVerdict == "LICENSED"
+	if !result {
+		log.Printf("[android] Account details verification failed: %++v", payload.AccountDetails)
+	}
+	return result
 }
 
 func (manager *PlayIntegrityManager) VerifyDeviceIntegrity(payload *playintegrity.TokenPayloadExternal) bool {
@@ -96,6 +97,7 @@ func (manager *PlayIntegrityManager) VerifyDeviceIntegrity(payload *playintegrit
 	// "MEETS_STRONG_INTEGRITY" - App is running on GMS Android device with Google Play services and has a strong guarantee of system integrity such as a hardware-backed keystore.
 	// "MEETS_VIRTUAL_INTEGRITY" - App is running on an Android emulator with Google Play services which meets core Android compatibility requirements.
 	if payload.DeviceIntegrity == nil {
+		log.Printf("[android] Device integrity verification is null: %++v", payload.DeviceIntegrity)
 		return false
 	}
 
@@ -104,6 +106,7 @@ func (manager *PlayIntegrityManager) VerifyDeviceIntegrity(payload *playintegrit
 			return true
 		}
 	}
+	log.Printf("[android] Device integrity verification failed: %++v", payload.DeviceIntegrity)
 	return false
 }
 
@@ -113,5 +116,9 @@ func (manager *PlayIntegrityManager) VerifyAppIntegrity(payload *playintegrity.T
 	//   "PLAY_RECOGNIZED" - The app and certificate match the versions distributed	by Play.
 	//   "UNRECOGNIZED_VERSION" - The certificate or package name does not match Google Play records.
 	//   "UNEVALUATED" - Application integrity was not evaluated since a necessary requirement was missed. For example DeviceIntegrity did not meet the minimum bar.
-	return payload.AppIntegrity != nil && payload.AppIntegrity.AppRecognitionVerdict == "PLAY_RECOGNIZED"
+	result := payload.AppIntegrity != nil && payload.AppIntegrity.AppRecognitionVerdict == "PLAY_RECOGNIZED"
+	if !result {
+		log.Printf("[android] App integrity verification failed: %++v", payload.AppIntegrity)
+	}
+	return result
 }
